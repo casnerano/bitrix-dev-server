@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+
+  nginx:
+    build: ./infrastructure/services/nginx
+    restart: on-failure
+    volumes:
+      - ./infrastructure/services/nginx/conf.d:/etc/nginx/conf.d
+      - ./infrastructure/services/nginx/snippets:/etc/nginx/snippets
+      - ./infrastructure/services/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./www:/var/www:ro
+    ports:
+      - "8080:80"
+    networks:
+      - internal
+
+  php82-fpm:
+    build: ./infrastructure/services/php8.2-fpm
+    restart: on-failure
+    volumes:
+#      - ./infrastructure/services/php8.2-fpm/conf.d:/usr/local/etc/php/conf.d
+      - ./www:/var/www
+    networks:
+      - internal
+
+  mysql82:
+    build: ./infrastructure/services/mysql8.2
+    restart: on-failure
+    command: mysqld --sql-mode="" --character-set-server=utf8 --collation-server=utf8_unicode_ci
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      - TZ=Europe/Moscow
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+    networks:
+      - internal
+
+volumes:
+  mysql-data: { }
+
+networks:
+  internal: { }
